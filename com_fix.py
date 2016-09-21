@@ -9,6 +9,7 @@ import binascii
 CoCreateAddr = None
 
 def get_com_name(clsid):
+	#TODO
 	#if clsid[0] == '{':
 	#	#this is string form guid
 	#	pass
@@ -52,7 +53,6 @@ if CoCreateAddr != None:
 			addr = idc.PrevHead(addr)
 			while GetMnem(addr) != "push":
 				addr = idc.PrevHead(addr)
-			#Get first param pushed which is address of domain
 			data_addr = GetOperandValue(addr,0)
 			print("Data address: "+hex(data_addr))
 			a = struct.pack('<IHHBBBBBBBB',Dword(data_addr), Word(data_addr+4),Word(data_addr+6),Byte(data_addr+8),Byte(data_addr+9),Byte(data_addr+10),Byte(data_addr+11),Byte(data_addr+12),Byte(data_addr+13),Byte(data_addr+14),Byte(data_addr+15))
