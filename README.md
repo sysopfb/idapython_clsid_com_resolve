@@ -1,0 +1,1 @@
+# idapython_clsid_com_resolve
