@@ -86,6 +86,5 @@ if CoCreateAddr != None:
 
 			if progname != "unknown":
 				service = _winreg.QueryValue(_winreg.HKEY_CLASSES_ROOT, "Interface\\"+iid)
-			if progname != "unknown":
 				print(service)
 				MakeComm(called_addr, service)
