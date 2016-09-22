@@ -1,15 +1,11 @@
-#By Jason Reaves
-# 20Sep2016
-
-
 from ctypes import *
 import struct
 import binascii
+import _winreg
 
 CoCreateAddr = None
 
 def get_com_name(clsid):
-	#TODO
 	#if clsid[0] == '{':
 	#	#this is string form guid
 	#	pass
@@ -51,20 +47,45 @@ if CoCreateAddr != None:
 			called_addr = addr
 
 			addr = idc.PrevHead(addr)
-			while GetMnem(addr) != "push":
-				addr = idc.PrevHead(addr)
-			data_addr = GetOperandValue(addr,0)
+			pcount = 0
+			while pcount < 4:
+				while GetMnem(addr) != "push":
+					addr = idc.PrevHead(addr)
+				pcount += 1
+				if pcount == 1:
+					clsid_addr = addr
+				if pcount < 4:
+					addr = idc.PrevHead(addr)
+			#Get first param pushed which is address of domain
+			iid_addr = GetOperandValue(addr,0)
+			data_addr = GetOperandValue(clsid_addr,0)
 			print("Data address: "+hex(data_addr))
 			a = struct.pack('<IHHBBBBBBBB',Dword(data_addr), Word(data_addr+4),Word(data_addr+6),Byte(data_addr+8),Byte(data_addr+9),Byte(data_addr+10),Byte(data_addr+11),Byte(data_addr+12),Byte(data_addr+13),Byte(data_addr+14),Byte(data_addr+15))
 			p = c_wchar_p()
 			b = create_string_buffer(a)
 			oledll.ole32.StringFromCLSID(byref(b),byref(p))
-			print("GUID: " + str(p.value))
+			print("CLSID GUID: " + str(p.value))
+			
 			p = c_wchar_p()
 			b = create_string_buffer(a)
 			try:
 				oledll.ole32.ProgIDFromCLSID(byref(b), byref(p))
-				print(str(p.value))
-				MakeComm(called_addr, str(p.value))
+				progname = str(p.value)
+				print(progname)
 			except:
+				progname = "unknown"
 				print('unknown')
+			
+			iid = struct.pack('<IHHBBBBBBBB',Dword(iid_addr), Word(iid_addr+4),Word(iid_addr+6),Byte(iid_addr+8),Byte(iid_addr+9),Byte(iid_addr+10),Byte(iid_addr+11),Byte(iid_addr+12),Byte(iid_addr+13),Byte(iid_addr+14),Byte(iid_addr+15))
+			p = c_wchar_p()
+			b = create_string_buffer(iid)
+			oledll.ole32.StringFromCLSID(byref(b),byref(p))
+			iid = str(p.value)
+			print("IID GUID: " + iid)
+			
+
+			if progname != "unknown":
+				service = _winreg.QueryValue(_winreg.HKEY_CLASSES_ROOT, "Interface\\"+iid)
+			if progname != "unknown":
+				print(service)
+				MakeComm(called_addr, service)
